@@ -1,27 +1,15 @@
-import os
 import dotenv
-from schwab import auth
 
 from src.get_rebalance_amounts import get_rebalance_amounts
 from src.send_email import send_email
+from src.schwab_client import SchwabClient
 
 
 def main():
+    c = SchwabClient.create()
+    
     # Fetch holdings
-    api_key = os.getenv("SCHWAB_API_KEY")
-    app_secret = os.getenv("SCHWAB_SECRET")
-
-    if not api_key or not app_secret:
-        raise ValueError("Schwab API details not found")
-
-    c = auth.easy_client(
-        api_key=api_key,
-        app_secret=app_secret,
-        callback_url="https://127.0.0.1:8182",
-        token_path="/tmp/token.json",
-    )
-
-    accounts = c.get_accounts(fields=[c.Account.Fields.POSITIONS])
+    accounts = c.get_accounts(fields=[SchwabClient.Account.Fields.POSITIONS])
     holdings = []
     for account in accounts.json():
         if "positions" not in account["securitiesAccount"]:
@@ -44,6 +32,7 @@ def main():
         if asset["relative_difference"] >= 0.25:
             break
     else:
+        print("Everything looks good.")
         return
 
     # Alert me or automatically rebalance
