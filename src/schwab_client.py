@@ -17,4 +17,5 @@ class SchwabClient(Client):
             app_secret=app_secret,
             callback_url="https://127.0.0.1:8182",
             token_path="/tmp/token.json",
+            interactive=False,
         )

@@ -7,7 +7,7 @@ from src.schwab_client import SchwabClient
 
 def main():
     c = SchwabClient.create()
-    
+
     # Fetch holdings
     accounts = c.get_accounts(fields=[SchwabClient.Account.Fields.POSITIONS])
     holdings = []
