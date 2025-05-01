@@ -1,41 +1,58 @@
-from collections import Counter
+import pandas as pd
+from src.get_holdings import Holding
+
+TARGET_ALLOCATIONS = {"VOO": 0.55, "VXUS": 0.30, "GLDM": 0.05, "VGIT": 0.10}
+SANDBOX_TARGET_ALLOCATIONS = {"U S Dollar": 0.30, "NHX105509": 0.05, "CAMYX": 0.65}
 
 
 def get_rebalance_amounts(
-    holdings: list[dict[str, str | float]],
-    target_allocations: dict[str, float],
-) -> list[dict[str, str | float]]:
+    holdings: list[Holding],
+    is_prod: bool = False,
+) -> pd.DataFrame:
     """
     Calculate rebalancing amounts for a portfolio to match target allocations.
 
     Parameters:
-    holdings (list): List of dictionaries, each with keys 'asset' and 'value'
-    target_allocations (dict): Dictionary mapping asset names to target percentage allocations
-                              (decimal values that sum to 1.0)
+    holdings (list): List of dictionaries, each with keys 'symbol', 'type', 'price', and 'value'
+    is_prod (bool): Whether to run with production data. Determines which assets are tracked.
 
     Returns:
-    list: List of dictionaries containing rebalancing instructions
+    Dataframe: df containing rebalancing instructions
     """
+    target_allocations = TARGET_ALLOCATIONS if is_prod else SANDBOX_TARGET_ALLOCATIONS
+
     if sum(target_allocations.values()) != 1:
         raise ValueError("Target allocations must sum to 1.0")
 
-    total_value = sum(holding["value"] for holding in holdings)
+    total_value = sum(holding.value for holding in holdings)
 
-    asset_values = Counter()
+    rows = []
     for holding in holdings:
-        asset_values[holding["asset"]] += holding["value"]
+        current_allocation = holding.value / total_value
 
-    rebalance = []
-    for asset, value in asset_values.items():
-        current_allocation = value / total_value
-        absolute_difference = abs(target_allocations[asset] - current_allocation)
-        relative_difference = absolute_difference / target_allocations[asset]
-        asset_rebalance = {
-            "asset": asset,
-            "absolute_difference": round(absolute_difference, 3),
-            "relative_difference": round(relative_difference, 3),
-            "value": round(absolute_difference * total_value, 2),
+        if holding.symbol in target_allocations:
+            target_allocation = target_allocations[holding.symbol]
+            absolute_difference = target_allocation - current_allocation
+            relative_difference = absolute_difference / target_allocation
+        else:
+            target_allocation = 0
+            absolute_difference = -current_allocation
+            relative_difference = 1
+
+        rebalance_value = absolute_difference * total_value
+
+        row_data = {
+            "symbol": holding.symbol,
+            "current_value": holding.value,
+            "target_allocation": target_allocation,
+            "current_allocation": current_allocation,
+            "absolute_difference": absolute_difference,
+            "relative_difference": relative_difference,
+            "rebalance_value": rebalance_value,
+            "rebalance_quantity": (
+                rebalance_value // holding.price if holding.price else 0
+            ),
         }
-        rebalance.append(asset_rebalance)
+        rows.append(row_data)
 
-    return rebalance
+    return pd.DataFrame(rows).set_index("symbol")
