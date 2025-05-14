@@ -1,14 +1,12 @@
 import pandas as pd
-from src.get_holdings import Holding
+from src.classes.holding import Holding
+from src.utils import is_prod
 
 TARGET_ALLOCATIONS = {"VOO": 0.55, "VXUS": 0.30, "GLDM": 0.05, "VGIT": 0.10}
 SANDBOX_TARGET_ALLOCATIONS = {"U S Dollar": 0.30, "NHX105509": 0.05, "CAMYX": 0.65}
 
 
-def get_rebalance_amounts(
-    holdings: list[Holding],
-    is_prod: bool = False,
-) -> pd.DataFrame:
+def get_rebalance_amounts(holdings: list[Holding]) -> pd.DataFrame:
     """
     Calculate rebalancing amounts for a portfolio to match target allocations.
 
@@ -19,7 +17,7 @@ def get_rebalance_amounts(
     Returns:
     Dataframe: df containing rebalancing instructions
     """
-    target_allocations = TARGET_ALLOCATIONS if is_prod else SANDBOX_TARGET_ALLOCATIONS
+    target_allocations = TARGET_ALLOCATIONS if is_prod() else SANDBOX_TARGET_ALLOCATIONS
 
     if sum(target_allocations.values()) != 1:
         raise ValueError("Target allocations must sum to 1.0")

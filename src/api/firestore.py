@@ -1,16 +1,27 @@
+import json
+
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 
-cred = credentials.Certificate("./firebase-cert.json")
-app = firebase_admin.initialize_app(cred)
+from src.api.secret import GoogleSecretWrapper
 
 
 class FirestoreClient:
-    def __init__(self):
-        db = firestore.client()
+    _items = None
 
-        self.Items = db.collection("items")
+    @classmethod
+    def query_items(cls):
+        if not firebase_admin._apps:
+            maybe_cred_dict = GoogleSecretWrapper.get_secret("FirebaseCert")
+            if not maybe_cred_dict:
+                raise ValueError("Secret not found!")
 
+            cred = credentials.Certificate(json.loads(maybe_cred_dict))
+            firebase_admin.initialize_app(cred)
 
-client = FirestoreClient()
+        if not cls._items:
+            db = firestore.client()
+            cls._items = db.collection("items")
+
+        return cls._items
