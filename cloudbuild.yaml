@@ -1,0 +1,39 @@
+steps:
+  # Build the container image
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/rebalancer:${COMMIT_SHA}", "."]
+
+  # Push the container image to Container Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/${PROJECT_ID}/rebalancer:${COMMIT_SHA}"]
+
+  # Deploy container image to Cloud Run
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      - "run"
+      - "deploy"
+      - "rebalancer"
+      - "--image"
+      - "gcr.io/$PROJECT_ID/rebalancer:${COMMIT_SHA}"
+      - "--region"
+      - "${_REGION}"
+      # Set standard environment variables
+      - "--set-env-vars"
+      - "PLAID_CLIENT_ID=${_PLAID_CLIENT_ID}"
+      - "GMAIL_ACCOUNT=${_GMAIL_ACCOUNT}"
+      # Reference Secret Manager secrets
+      # - '--update-secrets'
+      # - 'PLAID_CLIENT_ID=plaid-client-id:latest
+
+# Configure timeout for the build
+timeout: "1800s"
+
+# Substitution variables
+substitutions:
+  _REGION: us-central1
+  _PLAID_CLIENT_ID: 61e8a5cf7b79c5001aa87be0
+  _GMAIL_ACCOUNT: andrew.vagliano1@gmail.com
+
+images:
+  - "gcr.io/${PROJECT_ID}/rebalancer:${COMMIT_SHA}"

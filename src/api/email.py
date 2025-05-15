@@ -6,6 +6,8 @@ from email.mime.multipart import MIMEMultipart
 
 from src.api.secret import GoogleSecretWrapper
 
+EMAIL_ADDRESS = "andrew.vagliano1@gmail.com"
+
 
 class EmailClientWrapper:
     @classmethod
@@ -18,7 +20,7 @@ class EmailClientWrapper:
             body (str): The HTML content of the email body.
 
         """
-        sender = recipient = os.getenv("GMAIL_ACCOUNT")
+        sender = recipient = "andrew.vagliano1@gmail.com"
         password = GoogleSecretWrapper.get_secret("GmailAppPassword")
 
         msg = MIMEMultipart()
