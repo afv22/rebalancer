@@ -1,6 +1,6 @@
-import os
-
 from google.cloud import secretmanager
+
+PID = "1025610681903"
 
 
 class GoogleSecretWrapper:
@@ -12,8 +12,7 @@ class GoogleSecretWrapper:
             cls._client = secretmanager.SecretManagerServiceClient()
 
         try:
-            pid = os.environ.get("PROJECT_ID", "1025610681903")
-            secret_name = f"projects/{pid}/secrets/{secret_name}/versions/latest"
+            secret_name = f"projects/{PID}/secrets/{secret_name}/versions/latest"
             response = cls._client.access_secret_version(request={"name": secret_name})
             return response.payload.data.decode("UTF-8")
 

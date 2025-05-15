@@ -53,4 +53,4 @@ def get_rebalance_amounts(holdings: list[Holding]) -> pd.DataFrame:
         }
         rows.append(row_data)
 
-    return pd.DataFrame(rows).set_index("symbol")
+    return pd.DataFrame(rows)
