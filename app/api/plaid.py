@@ -14,17 +14,15 @@ class PlaidClientWrapper:
     def _initialize(cls) -> None:
         if cls._instance is None:
             if is_prod():
-                plaid_secret = GoogleSecretWrapper.get_secret("PlaidSecret")
                 cls.host = plaid.Environment.Production
             else:
-                plaid_secret = os.getenv("PLAID_SECRET")
                 cls.host = plaid.Environment.Sandbox
 
             configuration = plaid.Configuration(
                 host=cls.host,
                 api_key={
                     "clientId": os.getenv("PLAID_CLIENT_ID"),
-                    "secret": plaid_secret,
+                    "secret": os.getenv("PLAID_SECRET"),
                     "plaidVersion": "2020-09-14",
                 },
             )

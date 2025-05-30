@@ -1,55 +1,18 @@
 from flask import Flask
-from dotenv import load_dotenv
 
-from app.api.email import EmailClientWrapper
-
-from app.generate_email import generate_email
-from app.get_holdings import get_holdings
-from app.get_rebalance_amounts import get_rebalance_amounts
-from app.utils import error_handler, is_prod
+from app.utils import is_prod
+from app.blueprints.main import main_bp
+from app.blueprints.portfolio import portfolio_bp
 
 
 def create_app():
-    load_dotenv(override=True)
-
     user_id = 2 if is_prod() else 1
 
     app = Flask(__name__)
+    app.config["USER_ID"] = user_id
 
-    @app.route("/")
-    def hello():
-        return "Hello, World!"
-
-    @app.route("/holdings")
-    @error_handler
-    def holdings():
-        return list(map(lambda h: h.symbol, get_holdings(user_id)))
-
-    @app.route("/rebalance_amounts")
-    @error_handler
-    def rebalance_amounts():
-        holdings = get_holdings(user_id)
-        return get_rebalance_amounts(holdings).to_json()
-
-    @app.route("/check_allocation")
-    @error_handler
-    def check_allocation():
-        holdings = get_holdings(user_id)
-        rebalance_amounts = get_rebalance_amounts(holdings)
-
-        need_rebalance = False
-        for _, asset in rebalance_amounts.iterrows():
-            if abs(asset["absolute_difference"]) >= 0.05:
-                need_rebalance = True
-                break
-            if abs(asset["relative_difference"]) >= 0.25:
-                need_rebalance = True
-                break
-
-        if not need_rebalance:
-            return {"status": "rebalance_not_required"}
-
-        EmailClientWrapper.send("Time to rebalance!", generate_email(rebalance_amounts))
-        return {"status": "rebalance_required"}
+    # Register blueprints
+    app.register_blueprint(main_bp)
+    app.register_blueprint(portfolio_bp, url_prefix="/portfolio")
 
     return app
