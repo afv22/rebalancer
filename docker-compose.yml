@@ -1,0 +1,13 @@
+services:
+  rebalancer:
+    image: rebalancer
+    container_name: rebalancer
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+    volumes:
+      - ./app:/rebalancer/app
+    env_file: ".env"

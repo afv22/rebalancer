@@ -3,10 +3,8 @@ import os
 import plaid
 from plaid.api import plaid_api
 
-from src.api.secret import GoogleSecretWrapper
-from src.utils import is_prod
-
-CLIENT_ID = "61e8a5cf7b79c5001aa87be0"
+from app.api.secret import GoogleSecretWrapper
+from app.utils import is_prod
 
 
 class PlaidClientWrapper:
@@ -25,7 +23,7 @@ class PlaidClientWrapper:
             configuration = plaid.Configuration(
                 host=cls.host,
                 api_key={
-                    "clientId": CLIENT_ID,
+                    "clientId": os.getenv("PLAID_CLIENT_ID"),
                     "secret": plaid_secret,
                     "plaidVersion": "2020-09-14",
                 },
@@ -37,9 +35,11 @@ class PlaidClientWrapper:
     @classmethod
     def get_client(cls) -> plaid_api.PlaidApi:
         cls._initialize()
+        if cls._instance is None:
+            raise RuntimeError("Plaid client could not be initialized.")
         return cls._instance
 
     @classmethod
-    def get_host(cls) -> plaid.Environment:
+    def get_host(cls) -> str:
         cls._initialize()
         return cls.host

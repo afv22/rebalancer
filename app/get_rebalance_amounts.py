@@ -1,6 +1,7 @@
 import pandas as pd
-from src.classes.holding import Holding
-from src.utils import is_prod
+
+from app.classes.holding import Holding
+from app.utils import is_prod
 
 TARGET_ALLOCATIONS = {"VOO": 0.55, "VXUS": 0.30, "GLDM": 0.05, "VGIT": 0.10}
 SANDBOX_TARGET_ALLOCATIONS = {"U S Dollar": 0.30, "NHX105509": 0.05, "CAMYX": 0.65}

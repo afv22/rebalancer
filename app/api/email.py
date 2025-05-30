@@ -4,9 +4,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-from src.api.secret import GoogleSecretWrapper
-
-EMAIL_ADDRESS = "andrew.vagliano1@gmail.com"
+from app.api.secret import GoogleSecretWrapper
 
 
 class EmailClientWrapper:
@@ -20,7 +18,10 @@ class EmailClientWrapper:
             body (str): The HTML content of the email body.
 
         """
-        sender = recipient = "andrew.vagliano1@gmail.com"
+        sender = recipient = os.getenv("EMAIL_ADDRESS")
+        if not sender or not recipient:
+            raise RuntimeError("Email address not set.")
+
         password = GoogleSecretWrapper.get_secret("GmailAppPassword")
 
         msg = MIMEMultipart()

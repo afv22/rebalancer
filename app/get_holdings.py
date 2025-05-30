@@ -1,13 +1,13 @@
-from src.api.plaid import PlaidClientWrapper
-from src.api.firestore import FirestoreClient
-from src.classes.holding import Holding, HoldingType
-
 from plaid.model.investments_holdings_get_request import InvestmentsHoldingsGetRequest
 from plaid.model.investments_holdings_get_response import InvestmentsHoldingsGetResponse
 from plaid.model.security import Security as PlaidSecurity
 from plaid.model.holding import Holding as PlaidHolding
 
 from google.cloud.firestore_v1.base_query import FieldFilter
+
+from app.api.plaid import PlaidClientWrapper
+from app.api.firestore import FirestoreClient
+from app.classes.holding import Holding, HoldingType
 
 
 def get_holdings(user_id: int) -> list[Holding]:

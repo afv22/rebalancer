@@ -1,14 +1,12 @@
-import os
 from flask import Flask
-from waitress import serve
 from dotenv import load_dotenv
 
-from src.api.email import EmailClientWrapper
+from app.api.email import EmailClientWrapper
 
-from src.generate_email import generate_email
-from src.get_holdings import get_holdings
-from src.get_rebalance_amounts import get_rebalance_amounts
-from src.utils import is_prod
+from app.generate_email import generate_email
+from app.get_holdings import get_holdings
+from app.get_rebalance_amounts import get_rebalance_amounts
+from app.utils import error_handler, is_prod
 
 
 def create_app():
@@ -20,18 +18,21 @@ def create_app():
 
     @app.route("/")
     def hello():
-        return "Hello!"
+        return "Hello, World!"
 
     @app.route("/holdings")
+    @error_handler
     def holdings():
-        return map(lambda h: h.symbol, get_holdings(user_id))
+        return list(map(lambda h: h.symbol, get_holdings(user_id)))
 
     @app.route("/rebalance_amounts")
+    @error_handler
     def rebalance_amounts():
         holdings = get_holdings(user_id)
-        return get_rebalance_amounts(holdings).to_dict()
+        return get_rebalance_amounts(holdings).to_json()
 
     @app.route("/check_allocation")
+    @error_handler
     def check_allocation():
         holdings = get_holdings(user_id)
         rebalance_amounts = get_rebalance_amounts(holdings)
@@ -46,19 +47,9 @@ def create_app():
                 break
 
         if not need_rebalance:
-            return {"status": "ok", "message": "Everything looks good."}
+            return {"status": "rebalance_not_required"}
 
         EmailClientWrapper.send("Time to rebalance!", generate_email(rebalance_amounts))
-        return {
-            "status": "rebalance_required",
-            "message": "Email sent with rebalance instructions.",
-        }
+        return {"status": "rebalance_required"}
 
     return app
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    host = "0.0.0.0"
-    print(f"Running server on {host}:{port}")
-    serve(create_app(), host=host, port=port)
